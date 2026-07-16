@@ -9,6 +9,16 @@ venv/
 *.db
 *.sqlite3
 
+# Local object storage (AI uploads)
+backend/storage/
+
+# Trained AI adapters
+backend/app/ai/adapters/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+
 # Env
 .env
 

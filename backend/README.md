@@ -1,4 +1,4 @@
-# AttendIQ COA — Backend (Phase 1 MVP)
+# AttendIQ COA — Backend (Phase 1 MVP + Phase 2 AI)
 
 FastAPI implementation of the AttendIQ COA platform described in
 [`README_AttendIQ_COA_System_Design_v3_Full.md`](../README_AttendIQ_COA_System_Design_v3_Full.md).
@@ -6,8 +6,9 @@ FastAPI implementation of the AttendIQ COA platform described in
 This service covers the **Phase 1 MVP**: authentication, course/enrollment
 management, class sessions, rotating-QR attendance with a verification engine,
 in-class quizzes and participation scoring, tiered resource unlocking, reward
-computation, faculty analytics, and audit logging. (Phase 2 AI/OCR is out of
-scope.)
+computation, faculty analytics, and audit logging. It also includes the
+**Phase 2 AI** note-understanding pipeline (upload → OCR → concept extraction →
+recommendations) with graceful fallbacks so it runs without heavy ML deps.
 
 ## Tech stack
 
@@ -75,6 +76,8 @@ Open interactive docs at http://localhost:8000/docs.
   `GET /student/resources`, `GET /student/rewards`
 - **Analytics & audit:** `GET /faculty/analytics/course/{id}`,
   `GET /admin/audit-logs`
+- **AI (Phase 2):** `POST /student/ai/uploads`,
+  `POST /student/ai/submissions`, `GET /student/ai/submissions/{id}`
 
 All responses use a standard envelope:
 
@@ -106,7 +109,42 @@ pytest
 
 The suite spins up an isolated SQLite database, seeds demo data, and exercises
 the full flows: auth, RBAC, session lifecycle, QR check-in (valid/invalid/
-duplicate), quizzes, resource gating, override, audit, and analytics.
+duplicate), quizzes, resource gating, override, audit, analytics, and the AI
+submission pipeline.
+
+## Phase 2 AI infrastructure
+
+The AI layer follows the design's sequence (12.5): **upload → store → OCR →
+concept extraction → recommendation → persist feedback**. It runs everywhere by
+default and upgrades to real models without code changes.
+
+- **Storage** (`services/storage.py`) — local object storage emulating S3/
+  Supabase; returns `storage://bucket/key` URIs.
+- **OCR** (`services/ocr.py`) — Tesseract via `pytesseract` when available;
+  otherwise reads a `.txt`/sidecar transcript or returns a clear placeholder so
+  the pipeline is demonstrable without native OCR.
+- **Concept extraction** (`services/concepts.py` + `ai/knowledge_base.py`) — a
+  curated COA concept knowledge base drives deterministic keyword detection,
+  topic inference, coverage scoring, and missing-concept listing. An optional
+  fine-tuned **T5 + LoRA** model (`ai/model.py`) adds a natural-language summary
+  when configured.
+- **Recommendation** (`services/recommend.py`) — maps missing concepts/topic to
+  the course's resources.
+- **Processing** runs as a FastAPI background task; submissions start `queued`
+  and transition to `processing → completed` (or `failed`).
+
+### Optional model training (LoRA)
+
+```bash
+pip install -r app/ai/requirements-ai.txt          # heavy: torch/transformers/peft
+python -m app.ai.build_dataset > app/ai/data/coa_concepts.jsonl
+python -m app.ai.train_lora --out app/ai/adapters/coa-lora
+# then serve with the adapter:
+COA_T5_MODEL=t5-small COA_T5_LORA_ADAPTER=app/ai/adapters/coa-lora uvicorn app.main:app
+```
+
+Relevant env vars: `STORAGE_ROOT`, `COA_T5_MODEL`, `COA_T5_LORA_ADAPTER`,
+`COA_BASE_MODEL`.
 
 ## Project layout
 
@@ -122,7 +160,9 @@ backend/
 │   ├── deps.py          # Auth + role-based access dependencies
 │   ├── seed.py          # Demo data seeding
 │   ├── routers/         # auth, courses, sessions, attendance, quizzes,
-│   │                    #   resources, analytics
-│   └── services/        # qr, rewards, audit
+│   │                    #   resources, analytics, ai
+│   ├── services/        # qr, rewards, audit, storage, ocr, concepts, recommend
+│   └── ai/              # knowledge_base, model (T5/LoRA), build_dataset,
+│                        #   train_lora, requirements-ai.txt
 └── tests/
 ```

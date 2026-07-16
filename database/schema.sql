@@ -188,6 +188,18 @@ CREATE TABLE resource_access_logs (
     denial_reason TEXT
 );
 
+CREATE TABLE ai_submissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES users(id),
+    course_id UUID NOT NULL REFERENCES courses(id),
+    session_id UUID REFERENCES class_sessions(id),
+    image_file_url TEXT NOT NULL,
+    extracted_text TEXT,
+    model_feedback JSONB,
+    processing_status VARCHAR(30) DEFAULT 'queued',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE audit_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     actor_user_id UUID REFERENCES users(id),
@@ -203,3 +215,4 @@ CREATE INDEX idx_attendance_student ON attendance_records(student_id);
 CREATE INDEX idx_sessions_section ON class_sessions(section_id);
 CREATE INDEX idx_enrollments_section ON enrollments(section_id);
 CREATE INDEX idx_audit_entity ON audit_logs(entity_type);
+CREATE INDEX idx_ai_student ON ai_submissions(student_id);

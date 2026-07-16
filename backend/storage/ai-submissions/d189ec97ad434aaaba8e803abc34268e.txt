@@ -1,1 +1,0 @@
-Pipeline hazards include data hazards and control hazards. Forwarding reduces stalls.

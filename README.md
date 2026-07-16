@@ -10,9 +10,11 @@ The full system design lives in
 
 ## What's built
 
-The **Phase 1 MVP backend** is implemented in [`backend/`](./backend) with
-FastAPI + SQLAlchemy:
+Two runnable pieces plus the reference database schema:
 
+### Backend — [`backend/`](./backend) (FastAPI + SQLAlchemy)
+
+**Phase 1 MVP:**
 - Authentication with JWT and role-based access (student / faculty / admin)
 - Course, section, classroom, and enrollment management
 - Class session lifecycle (create → start → close → live monitoring)
@@ -21,10 +23,22 @@ FastAPI + SQLAlchemy:
 - Tiered resource unlocking and reward computation (bronze → platinum)
 - Faculty course analytics (attendance, weak topics) and audit logging
 
-> Phase 2 (Edge AI — OCR + T5/LoRA concept feedback) is described in the design
-> document and is intentionally not part of this MVP.
+**Phase 2 Edge AI:**
+- Note-image upload → object storage → OCR → COA concept extraction →
+  coverage scoring → resource recommendations, persisted as feedback
+- Runs with zero heavy ML dependencies via graceful fallbacks; upgrades to a
+  fine-tuned **T5 + LoRA** model and Tesseract OCR when configured
+
+### Frontend — [`frontend/`](./frontend) (Vite + React PWA)
+
+Phone-first, installable PWA with role-based dashboards for students
+(check-in, quizzes, attendance, rewards, resources, AI feedback), faculty
+(sessions, live QR, quiz launch/analytics, resources), and admins (courses,
+enrollments, audit).
 
 ## Getting started
+
+### Backend
 
 ```bash
 cd backend
@@ -39,11 +53,22 @@ Interactive API docs: http://localhost:8000/docs — see
 [`backend/README.md`](./backend/README.md) for endpoints, config, and demo
 accounts.
 
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev                 # proxies /api and /health to the backend
+```
+
+See [`frontend/README.md`](./frontend/README.md) for details.
+
 ## Repository layout
 
 ```
 .
-├── backend/                # FastAPI Phase 1 MVP (app, tests)
+├── backend/                # FastAPI backend (Phase 1 MVP + Phase 2 AI)
+├── frontend/               # Vite + React PWA (role-based dashboards)
 ├── database/schema.sql     # PostgreSQL reference schema
 └── README_AttendIQ_COA_System_Design_v3_Full.md   # Full system design + SRS
 ```
