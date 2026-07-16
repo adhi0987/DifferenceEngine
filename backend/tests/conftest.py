@@ -10,6 +10,7 @@ _TMP_DB = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
 _TMP_DB.close()
 os.environ["DATABASE_URL"] = f"sqlite:///{_TMP_DB.name}"
 os.environ["JWT_SECRET"] = "test-secret-key-that-is-long-enough-32b"
+os.environ["STORAGE_ROOT"] = tempfile.mkdtemp(prefix="attendiq-storage-")
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

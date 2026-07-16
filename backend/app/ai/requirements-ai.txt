@@ -1,0 +1,13 @@
+# Optional Phase 2 AI stack (heavy). Install only when training or serving the
+# real T5 + LoRA model / running Tesseract OCR. The platform runs without these.
+transformers>=4.40
+peft>=0.10
+datasets>=2.18
+torch>=2.2
+sentencepiece>=0.2
+accelerate>=0.29
+
+# OCR
+pytesseract>=0.3.10
+Pillow>=10.0
+# Also requires the native Tesseract binary, e.g. `brew install tesseract`.

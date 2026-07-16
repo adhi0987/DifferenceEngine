@@ -5,3 +5,4 @@ pydantic[email]
 PyJWT
 httpx
 pytest
+python-multipart

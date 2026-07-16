@@ -278,6 +278,22 @@ class ResourceAccessLog(Base):
     denial_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+class AiSubmission(Base):
+    __tablename__ = "ai_submissions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    student_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False)
+    course_id: Mapped[str] = mapped_column(String(36), ForeignKey("courses.id"), nullable=False)
+    session_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("class_sessions.id"), nullable=True
+    )
+    image_file_url: Mapped[str] = mapped_column(Text, nullable=False)
+    extracted_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    model_feedback: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON string
+    processing_status: Mapped[str] = mapped_column(String(30), default="queued")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 

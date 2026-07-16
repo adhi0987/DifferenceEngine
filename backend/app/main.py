@@ -12,6 +12,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from .config import get_settings
 from .database import init_db
 from .routers import (
+    ai,
     analytics,
     attendance,
     auth,
@@ -85,5 +86,6 @@ for _router in (
     quizzes.router,
     resources.router,
     analytics.router,
+    ai.router,
 ):
     app.include_router(_router, prefix=settings.api_prefix)

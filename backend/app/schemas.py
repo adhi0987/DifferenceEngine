@@ -275,3 +275,24 @@ class AuditLogEntry(BaseModel):
     entityType: str
     entityId: str | None
     createdAt: datetime
+
+
+# ---------------------------------------------------------------------------
+# Phase 2 AI
+# ---------------------------------------------------------------------------
+class AiSubmissionRequest(BaseModel):
+    courseId: str
+    sessionId: str | None = None
+    imageFileUrl: str
+
+
+class AiSubmissionCreated(BaseModel):
+    submissionId: str
+    processingStatus: str
+
+
+class AiSubmissionResult(BaseModel):
+    submissionId: str
+    processingStatus: str
+    extractedText: str | None = None
+    modelFeedback: dict[str, Any] | None = None
