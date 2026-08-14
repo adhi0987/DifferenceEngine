@@ -3,7 +3,7 @@ services:
   - type: web
     name: difference-engine-backend
     env: python
-    region: singapore # Change to your preferred region
+    region: singapore
     buildCommand: cd backend && pip install -r requirements.txt
     startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -17,8 +17,9 @@ services:
         value: https://difference-engine-frontend.onrender.com
 
   # 2. Vite + React Frontend Static Site
-  - type: static
+  - type: web
     name: difference-engine-frontend
+    env: static
     region: singapore
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
